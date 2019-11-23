@@ -1,14 +1,14 @@
 #s_ada62ybyb62LhTRGMH42T
 #https://docs.microsoft.com/en-us/sql/connect/python/pyodbc/step-3-proof-of-concept-connecting-to-sql-using-pyodbc?view=sql-server-ver15
-import pyodbc
-conn = pyodbc.connect('driver={SQL Server};Server=cypress.csil.sfu.ca;Trusted_Connection=yes;')
-cur = conn.cursor()
+#import pyodbc
+#conn = pyodbc.connect('driver={SQL Server};Server=cypress.csil.sfu.ca;Trusted_Connection=yes;')
+#cur = conn.cursor()
 
-cur.execute('SELECT username, password from dbo.helpdesk')
-row = cur.fetchone()
-while row:
-    print ('SQL Server standard login name = ' + row[0])
-    row = cur.fetchone()
+#cur.execute('SELECT username, password from dbo.helpdesk')
+#row = cur.fetchone()
+#while row:
+#    print ('SQL Server standard login name = ' + row[0])
+#    row = cur.fetchone()
 
 
 
