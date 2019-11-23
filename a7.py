@@ -22,22 +22,37 @@ def searchMenu(frame, resultFrame):
     def search(*args):
         try:
             print("sup")
-            searchFilterStr = "SELECT DISTINCT L.id, L.name, LEFT(L.description, 25), L.number_of_bedrooms, C.price FROM Listings as L, Calendar as C WHERE L.id IN	(SELECT L.id FROM Listings as L WHERE L.number_of_bedrooms >= {} ".format(int(numRooms.get()))
+            searchFilterStr = """
+            SELECT DISTINCT L.id, L.name, LEFT(L.description, 25), L.number_of_bedrooms, C.price
+                FROM Listings as L, Calendar as C
+                WHERE L.id IN
+                    (SELECT L2.id FROM Listings as L2
+                    WHERE L2.number_of_bedrooms >= {}""".format(int(numRooms.get()))
             
             if len(minPrice.get()) > 0 and len(maxPrice.get()) == 0:
-                searchFilterStr += "EXCEPT (SELECT C2.listing_id FROM Calendar as C2 WHERE C2.price < {}) ".format(int(minPrice.get()))
+                searchFilterStr += """
+                EXCEPT 
+                    (SELECT C2.listing_id FROM Calendar as C2
+                    WHERE C2.price < {}) """.format(int(minPrice.get()))
             elif len(minPrice.get()) == 0 and len(maxPrice.get()) > 0:
-                searchFilterStr += "EXCEPT (SELECT C2.listing_id FROM Calendar as C2 WHERE C2.price > {}) ".format(int(maxPrice.get()))
+                searchFilterStr += """
+                EXCEPT
+                    (SELECT C2.listing_id FROM Calendar as C2
+                    WHERE C2.price > {}) """.format(int(maxPrice.get()))
             elif len(minPrice.get()) > 0 and len(maxPrice.get()) > 0:
-                searchFilterStr += "EXCEPT (SELECT C2.listing_id FROM Calendar as C2 WHERE C2.price > {} OR C2.price < {}) ".format(int(maxPrice.get()), int(minPrice.get()))
+                searchFilterStr += """
+                EXCEPT 
+                    (SELECT C2.listing_id FROM Calendar as C2
+                    WHERE C2.price > {} OR C2.price < {}) """.format(int(maxPrice.get()), int(minPrice.get()))
 
-            searchFilterStr += """EXCEPT
-                                    (SELECT C3.listing_id FROM Calendar as C3
-                                    WHERE C3.date BETWEEN '{}' AND '{}'
-                                    AND C3.available = 1))
-                    AND C.price =	(SELECT MAX(C4.price) FROM Calendar as C4
-                                    WHERE C4.listing_id = L.id
-                                    AND C4.date BETWEEN '{}' AND '{}') """.format( minDate.get(), maxDate.get(), minDate.get(), maxDate.get() )
+            searchFilterStr += """
+                EXCEPT
+                    (SELECT C3.listing_id FROM Calendar as C3
+                    WHERE C3.date BETWEEN '{}' AND '{}'
+                    AND C3.available = 1))
+            AND C.price = (SELECT MAX(C4.price) FROM Calendar as C4
+                    WHERE C4.listing_id = L.id
+                    AND C4.date BETWEEN '{}' AND '{}') """.format( minDate.get(), maxDate.get(), minDate.get(), maxDate.get() )
 
             print(searchFilterStr)
 
