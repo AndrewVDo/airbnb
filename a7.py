@@ -133,7 +133,7 @@ reviewMenu(reviewFrame)
 
 root.mainloop()
 
-conn.close()
+#conn.close()
 
 
 
