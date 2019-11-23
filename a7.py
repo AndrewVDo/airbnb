@@ -100,8 +100,16 @@ def searchMenu(frame, resultFrame):
 def resultMenu(frame):
     print("result menu")
 
+    #padding
+    for child in frame.winfo_children():
+        child.grid_configure(padx=5, pady=5)
+
 def reviewMenu(frame):
     print("review menu")
+    
+    #padding
+    for child in frame.winfo_children():
+        child.grid_configure(padx=5, pady=5)
 
 
 #set root characteristics
