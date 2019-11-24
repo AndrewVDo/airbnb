@@ -128,7 +128,25 @@ def searchMenu(frame, resultFrame):
     minPriceEntry.focus()
 
 def reviewMenu(frame):
-    print("result menu")
+    def post():
+        print("post")
+
+    name = StringVar()
+    currentMonth = StringVar()
+    currentDay = StringVar()
+    currentYear = StringVar()
+    comments = StringVar()
+
+    ttk.Label(frame, text="Name").grid(column=0, row=1, sticky=(W,E))
+    ttk.Label(frame, text="Current date").grid(column=0, row=2, sticky=(W,E))
+    ttk.Label(frame, text="Comments").grid(column=0, row=3, sticky=(W,E))
+    ttk.Entry(frame, width=15, textvariable=name).grid(column=1, row=1, sticky=(W,E))
+    ttk.Combobox(frame, values=MONTH, width=15, textvariable=currentMonth).grid(column=1, row=2, sticky=(W,E))
+    ttk.Combobox(frame, values=DAY, width=15, textvariable=currentDay).grid(column=2, row=2, sticky=(W,E))
+    ttk.Combobox(frame, values=YEAR, width=15, textvariable=currentYear).grid(column=3, row=2, sticky=(W,E))
+    ttk.Entry(frame, textvariable=comments).grid(column=1, row=3, columnspan=4, rowspan=2, sticky=(N,S,W,E))
+
+    
 
     #padding
     for child in frame.winfo_children():
@@ -140,21 +158,23 @@ def resultMenu(frame):
     
 
     tree = ttk.Treeview(frame)
-    tree["columns"] = ("name", "desc", "broom", "price")
+    tree["columns"] = ("id", "name", "desc", "broom", "price")
 
-    tree.column("#0", width=75)
-    tree.column("name", width=160)
-    tree.column("desc", width=300)
-    tree.column("broom", width=75)
-    tree.column("price", width=75)
+    tree.column("#0", width=0, minwidth=0)
+    tree.column("id", width=75, minwidth=75)
+    tree.column("name", width=160, minwidth=160)
+    tree.column("desc", width=300, minwidth=300)
+    tree.column("broom", width=75, minwidth=75)
+    tree.column("price", width=75, minwidth=75)
 
-    tree.heading("#0", text="Id")
+    tree.heading("id", text="Id")
     tree.heading("name", text="Name")
     tree.heading("desc", text="Description")
     tree.heading("broom", text="Rooms")
     tree.heading("price", text="Price")
 
     tree.grid(row=1, column=0, columnspan=4)
+    tree.insert('', 'end', values=('a','b','c','d','e'))
 
     #padding
     for child in frame.winfo_children():
