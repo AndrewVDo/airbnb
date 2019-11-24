@@ -1,3 +1,13 @@
+MONTH = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+DAY = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"]
+YEAR = ["2014","2015","2016","2017","2018","2019","2020"]
+def mon2num(input):
+    num = MONTH.index(input) + 1
+    if num < 10:
+        return "0{}".format(num)
+    else:
+        return "{}".format(num)
+
 #s_ada62ybyb62LhTRGMH42T
 #https://docs.microsoft.com/en-us/sql/connect/python/pyodbc/step-3-proof-of-concept-connecting-to-sql-using-pyodbc?view=sql-server-ver15
 #import pyodbc
@@ -21,7 +31,9 @@ def raiseFrame(frame):
 def searchMenu(frame, resultFrame):
     def search(*args):
         try:
-            print("sup")
+            minDate = "{}/{}/{}".format(mon2num(startMonth.get()), startDay.get(), startYear.get())
+            maxDate = "{}/{}/{}".format(mon2num(endMonth.get()), endDay.get(), endYear.get())
+
             searchFilterStr = """
             SELECT DISTINCT L.id, L.name, LEFT(L.description, 25), L.number_of_bedrooms, C.price
                 FROM Listings as L, Calendar as C
@@ -52,7 +64,7 @@ def searchMenu(frame, resultFrame):
                     AND C3.available = 1))
             AND C.price = (SELECT MAX(C4.price) FROM Calendar as C4
                     WHERE C4.listing_id = L.id
-                    AND C4.date BETWEEN '{}' AND '{}') """.format( minDate.get(), maxDate.get(), minDate.get(), maxDate.get() )
+                    AND C4.date BETWEEN '{}' AND '{}') """.format( minDate, maxDate, minDate, maxDate )
 
             print(searchFilterStr)
 
@@ -64,31 +76,44 @@ def searchMenu(frame, resultFrame):
     minPrice = StringVar()
     maxPrice = StringVar()
     numRooms = StringVar()
-    minDate = StringVar()
-    maxDate = StringVar()
+    startMonth = StringVar()
+    startDay = StringVar()
+    startYear = StringVar()
+    endMonth = StringVar()
+    endDay = StringVar()
+    endYear = StringVar()
 
-    ttk.Label(frame, text="Filter:").grid(column=1, row=2, sticky=W)
+    ttk.Label(frame, text="Filter:").grid(column=0, row=1, sticky=W)
 
-    ttk.Label(frame, text="Price").grid(column=1, row=3, sticky=W)
-    minPriceEntry = ttk.Entry(frame, width=10, textvariable=minPrice)
-    minPriceEntry.grid(column=2, row=3, sticky=(W, E))
-    ttk.Label(frame, text="-").grid(column=3, row=3, sticky=W)
-    maxPriceEntry = ttk.Entry(frame, width=10, textvariable=maxPrice)
-    maxPriceEntry.grid(column=4, row=3, sticky=(W, E))
+    ttk.Label(frame, text="Minimum price:").grid(column=0, row=2, sticky=(W, E))
+    ttk.Label(frame, text="Maximum price:").grid(column=2, row=2, sticky=(W, E))
+    minPriceEntry = ttk.Entry(frame, width=15, textvariable=minPrice)
+    maxPriceEntry = ttk.Entry(frame, width=15, textvariable=maxPrice)
+    minPriceEntry.grid(column=1, row=2, sticky=(W, E))
+    maxPriceEntry.grid(column=3, row=2, sticky=(W, E))
 
-    ttk.Label(frame, text="Rooms").grid(column=1, row=4, sticky=W)
-    numRoomsEntry = ttk.Entry(frame, width=10, textvariable=numRooms)
-    numRoomsEntry.grid(column=2, row=4, sticky=(W, E))
+    ttk.Label(frame, text="Minimum Rooms").grid(column=0, row=3, sticky=W)
+    numRoomsEntry = ttk.Entry(frame, width=15, textvariable=numRooms)
+    numRoomsEntry.grid(column=1, row=3, sticky=(W, E))
 
-    ttk.Label(frame, text="Stay date").grid(column=1, row=5, sticky=W)
-    minDateEntry = ttk.Entry(frame, width=10, textvariable=minDate)
-    minDateEntry.grid(column=2, row=5, sticky=(W, E))
-    ttk.Label(frame, text="-").grid(column=3, row=5, sticky=W)
-    maxDateEntry = ttk.Entry(frame, width=10, textvariable=maxDate)
-    maxDateEntry.grid(column=4, row=5, sticky=(W, E))
+    ttk.Label(frame, text="Stay from").grid(column=0, row=4, sticky=W)
+    startMonthBox  = ttk.Combobox(frame, values=MONTH, width=15, textvariable=startMonth)
+    startDayBox    = ttk.Combobox(frame, values=DAY, width=15, textvariable=startDay)
+    startYearBox   = ttk.Combobox(frame, values=YEAR, width=15, textvariable=startYear)
+    startMonthBox.grid(column=1, row=4, sticky=(W, E))
+    startDayBox.grid(column=2, row=4, sticky=(W, E))
+    startYearBox.grid(column=3, row=4, sticky=(W, E))
 
-    searchButton = ttk.Button(frame, width=10, text="search", command=search)
-    searchButton.grid(column=4, row=6, sticky=(W, E))
+    ttk.Label(frame, text="Stay to").grid(column=0, row=5, sticky=W)
+    endMonthBox    = ttk.Combobox(frame, values=MONTH, width=15, textvariable=endMonth)
+    endDayBox      = ttk.Combobox(frame, values=DAY, width=15, textvariable=endDay)
+    endYearBox     = ttk.Combobox(frame, values=YEAR, width=15, textvariable=endYear)
+    endMonthBox.grid(column=1, row=5, sticky=(W, E))
+    endDayBox.grid(column=2, row=5, sticky=(W, E))
+    endYearBox.grid(column=3, row=5, sticky=(W, E))
+    
+    searchButton = ttk.Button(frame, width=15, text="search", command=search)
+    searchButton.grid(column=3, row=6, sticky=(W, E))
 
     #padding
     for child in frame.winfo_children():
@@ -105,8 +130,27 @@ def resultMenu(frame):
         child.grid_configure(padx=5, pady=5)
 
 def reviewMenu(frame):
-    print("review menu")
+    ttk.Label(frame, text="", width=15).grid(column=2, row=0, sticky=(W,E))
+    ttk.Button(frame, text="Book", width=15).grid(column=3, row=0, sticky=(W,E))
     
+
+    tree = ttk.Treeview(frame)
+    tree["columns"] = ("name", "desc", "broom", "price")
+
+    tree.column("#0", width=75)
+    tree.column("name", width=160)
+    tree.column("desc", width=300)
+    tree.column("broom", width=75)
+    tree.column("price", width=75)
+
+    tree.heading("#0", text="Id")
+    tree.heading("name", text="Name")
+    tree.heading("desc", text="Description")
+    tree.heading("broom", text="Rooms")
+    tree.heading("price", text="Price")
+
+    tree.grid(row=1, column=0, columnspan=4)
+
     #padding
     for child in frame.winfo_children():
         child.grid_configure(padx=5, pady=5)
@@ -129,10 +173,10 @@ for frame in (searchFrame, resultFrame, reviewFrame):
     root.rowconfigure(0, weight=1)
     
     #menu buttons
-    menu1Button = ttk.Button(frame, width=10, text="Find homes", command=lambda:raiseFrame(searchFrame))
-    menu1Button.grid(column=1, row=1, sticky=(W, E))
-    menu2Button = ttk.Button(frame, width=10, text="Review", command=lambda:raiseFrame(reviewFrame))
-    menu2Button.grid(column=2, row=1, sticky=(W, E))
+    menu1Button = ttk.Button(frame, width=15, text="Find homes", command=lambda:raiseFrame(searchFrame))
+    menu1Button.grid(column=0, row=0, sticky=(W, E))
+    menu2Button = ttk.Button(frame, width=15, text="Review", command=lambda:raiseFrame(reviewFrame))
+    menu2Button.grid(column=1, row=0, sticky=(W, E))
 
 searchMenu(searchFrame, resultFrame)
 resultMenu(resultFrame)
