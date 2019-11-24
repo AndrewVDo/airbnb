@@ -113,7 +113,7 @@ def searchMenu(frame, resultFrame):
 
 def reviewMenu(frame):
     def post():
-        print("post")
+        raiseFrame(errorReview)
 
     name = StringVar()
     currentMonth = StringVar()
@@ -124,6 +124,7 @@ def reviewMenu(frame):
     ttk.Label(frame, text="Name").grid(column=0, row=1, sticky=(W,E))
     ttk.Label(frame, text="Current date").grid(column=0, row=2, sticky=(W,E))
     ttk.Label(frame, text="Comments").grid(column=0, row=3, sticky=(W,E))
+    ttk.Button(frame, text="Post", command=post).grid(column=3, row=0, sticky=(W,E))
     ttk.Label(frame, text="").grid(column=0, row=4, sticky=(W,E))
     ttk.Entry(frame, width=15, textvariable=name).grid(column=1, row=1, sticky=(W,E))
     ttk.Combobox(frame, values=MONTH, width=15, textvariable=currentMonth).grid(column=1, row=2, sticky=(W,E))
@@ -133,21 +134,30 @@ def reviewMenu(frame):
 
     tree = ttk.Treeview(frame)
     tree["columns"] = ("id", "name", "desc", "broom", "price")
-
     tree.column("#0", width=0, minwidth=0)
     tree.column("id", width=75, minwidth=75)
     tree.column("name", width=160, minwidth=160)
     tree.column("desc", width=300, minwidth=300)
     tree.column("broom", width=75, minwidth=75)
     tree.column("price", width=75, minwidth=75)
-
     tree.heading("id", text="Id")
     tree.heading("name", text="Name")
     tree.heading("desc", text="Description")
     tree.heading("broom", text="Rooms")
     tree.heading("price", text="Price")
-
-    tree.grid(row=4, column=0, columnspan=4)
+    tree.grid(row=4, column=0, columnspan=4, sticky=(N,E,S,W))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('1','2','3','4','5'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+    tree.insert('', 'end', values=('a','b','c','d','e'))
     tree.insert('', 'end', values=('a','b','c','d','e'))
 
     #padding
@@ -158,29 +168,34 @@ def resultMenu(frame):
     ttk.Label(frame, text="", width=15).grid(column=2, row=0, sticky=(W,E))
     ttk.Button(frame, text="Book", width=15).grid(column=3, row=0, sticky=(W,E))
     
-    tree = ttk.Treeview(frame)
+    tree = ttk.Treeview(frame, height=16)
     tree["columns"] = ("id", "name", "desc", "broom", "price")
-
     tree.column("#0", width=0, minwidth=0)
     tree.column("id", width=75, minwidth=75)
     tree.column("name", width=160, minwidth=160)
     tree.column("desc", width=300, minwidth=300)
     tree.column("broom", width=75, minwidth=75)
     tree.column("price", width=75, minwidth=75)
-
     tree.heading("id", text="Id")
     tree.heading("name", text="Name")
     tree.heading("desc", text="Description")
     tree.heading("broom", text="Rooms")
     tree.heading("price", text="Price")
-
-    tree.grid(row=1, column=0, columnspan=4, sticky=S)
+    tree.grid(row=1, column=0, columnspan=4, sticky=(N,E,S,W))
     tree.insert('', 'end', values=('a','b','c','d','e'))
 
     #padding
     for child in frame.winfo_children():
         child.grid_configure(padx=5, pady=5)
 
+def errorScreen(frame, errorCode):
+    ttk.Label(frame, width=15, text="").grid(column=2, row=0)
+    if errorCode == 1:
+        ttk.Label(frame, width=40, text="                   Search returned no results!").grid(row=1, column=1, columnspan=2)
+        ttk.Button(frame, width=40, text="Go Back", command=lambda:raiseFrame(searchFrame)).grid(row=2, column=1, columnspan=2)
+    elif errorCode == 2:
+        ttk.Label(frame, width=40, text="               Sorry you can't review that listing!").grid(row=1, column=1, columnspan=2)
+        ttk.Button(frame, width=40, text="Go Back", command=lambda:raiseFrame(reviewFrame)).grid(row=2, column=1, columnspan=2)
 
 #set root characteristics
 root = Tk()
@@ -191,22 +206,25 @@ root.configure(background='#FF5A60')
 searchFrame = ttk.Frame(root)
 resultFrame = ttk.Frame(root)
 reviewFrame = ttk.Frame(root)
+errorSearch = ttk.Frame(root)
+errorReview = ttk.Frame(root)
 
 
-for frame in (searchFrame, resultFrame, reviewFrame):
+for frame in (searchFrame, resultFrame, reviewFrame, errorSearch, errorReview):
     frame.grid(column=0, row=0, sticky=(N, W, E, S))
+    frame.grid_configure(padx=10, pady=10)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     
     #menu buttons
-    menu1Button = ttk.Button(frame, width=15, text="Find homes", command=lambda:raiseFrame(searchFrame))
-    menu1Button.grid(column=0, row=0, sticky=(W, E))
-    menu2Button = ttk.Button(frame, width=15, text="Review", command=lambda:raiseFrame(reviewFrame))
-    menu2Button.grid(column=1, row=0, sticky=(W, E))
+    ttk.Button(frame, width=15, text="Find homes", command=lambda:raiseFrame(searchFrame)).grid(column=0, row=0, sticky=(W, E))
+    ttk.Button(frame, width=15, text="Review", command=lambda:raiseFrame(reviewFrame)).grid(column=1, row=0, sticky=(W, E))
 
 searchMenu(searchFrame, resultFrame)
 resultMenu(resultFrame)
 reviewMenu(reviewFrame)
+errorScreen(errorSearch, 1)
+errorScreen(errorReview, 2)
 
 raiseFrame(searchFrame)
 
