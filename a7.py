@@ -92,40 +92,24 @@ def searchMenu(frame, resultFrame):
 
     ttk.Label(frame, text="Minimum price:").grid(column=0, row=2, sticky=(W, E))
     ttk.Label(frame, text="Maximum price:").grid(column=2, row=2, sticky=(W, E))
-    minPriceEntry = ttk.Entry(frame, width=15, textvariable=minPrice)
-    maxPriceEntry = ttk.Entry(frame, width=15, textvariable=maxPrice)
-    minPriceEntry.grid(column=1, row=2, sticky=(W, E))
-    maxPriceEntry.grid(column=3, row=2, sticky=(W, E))
-
     ttk.Label(frame, text="Minimum Rooms").grid(column=0, row=3, sticky=W)
-    numRoomsEntry = ttk.Entry(frame, width=15, textvariable=numRooms)
-    numRoomsEntry.grid(column=1, row=3, sticky=(W, E))
-
     ttk.Label(frame, text="Stay from").grid(column=0, row=4, sticky=W)
-    startMonthBox  = ttk.Combobox(frame, values=MONTH, width=15, textvariable=startMonth)
-    startDayBox    = ttk.Combobox(frame, values=DAY, width=15, textvariable=startDay)
-    startYearBox   = ttk.Combobox(frame, values=YEAR, width=15, textvariable=startYear)
-    startMonthBox.grid(column=1, row=4, sticky=(W, E))
-    startDayBox.grid(column=2, row=4, sticky=(W, E))
-    startYearBox.grid(column=3, row=4, sticky=(W, E))
-
     ttk.Label(frame, text="Stay to").grid(column=0, row=5, sticky=W)
-    endMonthBox    = ttk.Combobox(frame, values=MONTH, width=15, textvariable=endMonth)
-    endDayBox      = ttk.Combobox(frame, values=DAY, width=15, textvariable=endDay)
-    endYearBox     = ttk.Combobox(frame, values=YEAR, width=15, textvariable=endYear)
-    endMonthBox.grid(column=1, row=5, sticky=(W, E))
-    endDayBox.grid(column=2, row=5, sticky=(W, E))
-    endYearBox.grid(column=3, row=5, sticky=(W, E))
-    
-    searchButton = ttk.Button(frame, width=15, text="search", command=search)
-    searchButton.grid(column=3, row=6, sticky=(W, E))
+    ttk.Button(frame, width=15, text="search", command=search).grid(column=3, row=6, sticky=(W, E))
+    ttk.Entry(frame, width=15, textvariable=minPrice).grid(column=1, row=2, sticky=(W, E))
+    ttk.Entry(frame, width=15, textvariable=maxPrice).grid(column=3, row=2, sticky=(W, E))
+    ttk.Entry(frame, width=15, textvariable=numRooms).grid(column=1, row=3, sticky=(W, E))
+    ttk.Combobox(frame, values=MONTH, width=15, textvariable=startMonth).grid(column=1, row=4, sticky=(W, E))
+    ttk.Combobox(frame, values=DAY, width=15, textvariable=startDay).grid(column=2, row=4, sticky=(W, E))
+    ttk.Combobox(frame, values=YEAR, width=15, textvariable=startYear).grid(column=3, row=4, sticky=(W, E))
+    ttk.Combobox(frame, values=MONTH, width=15, textvariable=endMonth).grid(column=1, row=5, sticky=(W, E))
+    ttk.Combobox(frame, values=DAY, width=15, textvariable=endDay).grid(column=2, row=5, sticky=(W, E))
+    ttk.Combobox(frame, values=YEAR, width=15, textvariable=endYear).grid(column=3, row=5, sticky=(W, E))
 
     #padding
     for child in frame.winfo_children():
         child.grid_configure(padx=5, pady=5)
 
-    #initial focus
-    minPriceEntry.focus()
 
 def reviewMenu(frame):
     def post():
@@ -140,22 +124,12 @@ def reviewMenu(frame):
     ttk.Label(frame, text="Name").grid(column=0, row=1, sticky=(W,E))
     ttk.Label(frame, text="Current date").grid(column=0, row=2, sticky=(W,E))
     ttk.Label(frame, text="Comments").grid(column=0, row=3, sticky=(W,E))
+    ttk.Label(frame, text="").grid(column=0, row=4, sticky=(W,E))
     ttk.Entry(frame, width=15, textvariable=name).grid(column=1, row=1, sticky=(W,E))
     ttk.Combobox(frame, values=MONTH, width=15, textvariable=currentMonth).grid(column=1, row=2, sticky=(W,E))
     ttk.Combobox(frame, values=DAY, width=15, textvariable=currentDay).grid(column=2, row=2, sticky=(W,E))
     ttk.Combobox(frame, values=YEAR, width=15, textvariable=currentYear).grid(column=3, row=2, sticky=(W,E))
-    ttk.Entry(frame, textvariable=comments).grid(column=1, row=3, columnspan=4, rowspan=2, sticky=(N,S,W,E))
-
-    
-
-    #padding
-    for child in frame.winfo_children():
-        child.grid_configure(padx=5, pady=5)
-
-def resultMenu(frame):
-    ttk.Label(frame, text="", width=15).grid(column=2, row=0, sticky=(W,E))
-    ttk.Button(frame, text="Book", width=15).grid(column=3, row=0, sticky=(W,E))
-    
+    ttk.Entry(frame, textvariable=comments).grid(column=1, row=3, columnspan=4, sticky=(W,E))
 
     tree = ttk.Treeview(frame)
     tree["columns"] = ("id", "name", "desc", "broom", "price")
@@ -173,7 +147,34 @@ def resultMenu(frame):
     tree.heading("broom", text="Rooms")
     tree.heading("price", text="Price")
 
-    tree.grid(row=1, column=0, columnspan=4)
+    tree.grid(row=4, column=0, columnspan=4)
+    tree.insert('', 'end', values=('a','b','c','d','e'))
+
+    #padding
+    for child in frame.winfo_children():
+        child.grid_configure(padx=5, pady=5)
+
+def resultMenu(frame):
+    ttk.Label(frame, text="", width=15).grid(column=2, row=0, sticky=(W,E))
+    ttk.Button(frame, text="Book", width=15).grid(column=3, row=0, sticky=(W,E))
+    
+    tree = ttk.Treeview(frame)
+    tree["columns"] = ("id", "name", "desc", "broom", "price")
+
+    tree.column("#0", width=0, minwidth=0)
+    tree.column("id", width=75, minwidth=75)
+    tree.column("name", width=160, minwidth=160)
+    tree.column("desc", width=300, minwidth=300)
+    tree.column("broom", width=75, minwidth=75)
+    tree.column("price", width=75, minwidth=75)
+
+    tree.heading("id", text="Id")
+    tree.heading("name", text="Name")
+    tree.heading("desc", text="Description")
+    tree.heading("broom", text="Rooms")
+    tree.heading("price", text="Price")
+
+    tree.grid(row=1, column=0, columnspan=4, sticky=S)
     tree.insert('', 'end', values=('a','b','c','d','e'))
 
     #padding
