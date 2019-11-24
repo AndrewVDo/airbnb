@@ -31,16 +31,17 @@ def raiseFrame(frame):
 def searchMenu(frame, resultFrame):
     def search(*args):
         try:
-            minDate = "{}/{}/{}".format(mon2num(startMonth.get()), startDay.get(), startYear.get())
-            maxDate = "{}/{}/{}".format(mon2num(endMonth.get()), endDay.get(), endYear.get())
+            nRooms = "0"
+            if len(minPrice.get()) > 0:
+                nRooms = numRooms.get()
 
             searchFilterStr = """
             SELECT DISTINCT L.id, L.name, LEFT(L.description, 25), L.number_of_bedrooms, C.price
-                FROM Listings as L, Calendar as C
-                WHERE L.id IN
-                    (SELECT L2.id FROM Listings as L2
-                    WHERE L2.number_of_bedrooms >= {}""".format(int(numRooms.get()))
-            
+            FROM Listings as L, Calendar as C
+            WHERE L.id IN
+                (SELECT L2.id FROM Listings as L2
+                WHERE L2.number_of_bedrooms >= {}""".format(nRooms)
+
             if len(minPrice.get()) > 0 and len(maxPrice.get()) == 0:
                 searchFilterStr += """
                 EXCEPT 
@@ -57,7 +58,11 @@ def searchMenu(frame, resultFrame):
                     (SELECT C2.listing_id FROM Calendar as C2
                     WHERE C2.price > {} OR C2.price < {}) """.format(int(maxPrice.get()), int(minPrice.get()))
 
-            searchFilterStr += """
+            if len(startMonth.get()) > 0 and len(startDay.get()) > 0 and len(startYear.get()) > 0 and len(endMonth.get()) > 0 and len(endDay.get()) > 0 and len(endYear.get()) > 0:
+                minDate = "{}/{}/{}".format(mon2num(startMonth.get()), startDay.get(), startYear.get())
+                maxDate = "{}/{}/{}".format(mon2num(endMonth.get()), endDay.get(), endYear.get())
+
+                searchFilterStr += """
                 EXCEPT
                     (SELECT C3.listing_id FROM Calendar as C3
                     WHERE C3.date BETWEEN '{}' AND '{}'
@@ -122,14 +127,14 @@ def searchMenu(frame, resultFrame):
     #initial focus
     minPriceEntry.focus()
 
-def resultMenu(frame):
+def reviewMenu(frame):
     print("result menu")
 
     #padding
     for child in frame.winfo_children():
         child.grid_configure(padx=5, pady=5)
 
-def reviewMenu(frame):
+def resultMenu(frame):
     ttk.Label(frame, text="", width=15).grid(column=2, row=0, sticky=(W,E))
     ttk.Button(frame, text="Book", width=15).grid(column=3, row=0, sticky=(W,E))
     
@@ -182,6 +187,7 @@ searchMenu(searchFrame, resultFrame)
 resultMenu(resultFrame)
 reviewMenu(reviewFrame)
 
+raiseFrame(searchFrame)
 
 root.mainloop()
 
