@@ -8,17 +8,16 @@ def mon2num(input):
     else:
         return "{}".format(num)
 
-#s_ada62ybyb62LhTRGMH42T
 #https://docs.microsoft.com/en-us/sql/connect/python/pyodbc/step-3-proof-of-concept-connecting-to-sql-using-pyodbc?view=sql-server-ver15
-#import pyodbc
-#conn = pyodbc.connect('driver={SQL Server};Server=cypress.csil.sfu.ca;Trusted_Connection=yes;')
-#cur = conn.cursor()
+import pyodbc
+conn = pyodbc.connect('driver={SQL Server};Server=cypress.csil.sfu.ca;uid=s_ada62;pwd=ybyb62LhTRGMH42T;database=ada62354')
+cur = conn.cursor()
 
-#cur.execute('SELECT username, password from dbo.helpdesk')
-#row = cur.fetchone()
-#while row:
-#    print ('SQL Server standard login name = ' + row[0])
-#    row = cur.fetchone()
+cur.execute('SELECT username, password from dbo.helpdesk')
+row = cur.fetchone()
+while row:
+    print ('SQL Server standard login name = ' + row[0])
+    row = cur.fetchone()
 
 
 
@@ -27,6 +26,8 @@ from tkinter import ttk
 
 def raiseFrame(frame):
     frame.tkraise()
+
+
 
 def searchMenu(frame, resultFrame):
     def search(*args):
@@ -63,7 +64,7 @@ def searchMenu(frame, resultFrame):
                 maxDate = "{}/{}/{}".format(mon2num(endMonth.get()), endDay.get(), endYear.get())
 
                 searchFilterStr += """
-                EXCEPT
+                INTERSECT
                     (SELECT C3.listing_id FROM Calendar as C3
                     WHERE C3.date BETWEEN '{}' AND '{}'
                     AND C3.available = 1))
@@ -72,8 +73,14 @@ def searchMenu(frame, resultFrame):
                     AND C4.date BETWEEN '{}' AND '{}') """.format( minDate, maxDate, minDate, maxDate )
 
             print(searchFilterStr)
-
+            cur.execute(searchFilterStr)
+            resultTree.delete(*resultTree.get_children())
             raiseFrame(resultFrame)
+            row = cur.fetchone()
+            while(row):
+                resultTree.insert('', 'end', values=(row[0],row[1],row[2],row[3],row[4]))
+                row = cur.fetchone()
+
         except ValueError:
             pass
 
@@ -111,6 +118,35 @@ def searchMenu(frame, resultFrame):
         child.grid_configure(padx=5, pady=5)
 
 
+
+
+def resultMenu(frame):
+    ttk.Label(frame, text="", width=15).grid(column=2, row=0, sticky=(W,E))
+    ttk.Button(frame, text="Book", width=15).grid(column=3, row=0, sticky=(W,E))
+    
+    tree = ttk.Treeview(frame, height=16)
+    tree["columns"] = ("id", "name", "desc", "broom", "price")
+    tree.column("#0", width=0, minwidth=0)
+    tree.column("id", width=75, minwidth=75)
+    tree.column("name", width=160, minwidth=230)
+    tree.column("desc", width=300, minwidth=230)
+    tree.column("broom", width=75, minwidth=75)
+    tree.column("price", width=75, minwidth=75)
+    tree.heading("id", text="Id")
+    tree.heading("name", text="Name")
+    tree.heading("desc", text="Description")
+    tree.heading("broom", text="Rooms")
+    tree.heading("price", text="Price")
+    tree.grid(row=1, column=0, columnspan=4, sticky=(N,E,S,W))
+
+    #padding
+    for child in frame.winfo_children():
+        child.grid_configure(padx=5, pady=5)
+
+    return tree
+
+
+
 def reviewMenu(frame):
     def post():
         raiseFrame(errorReview)
@@ -136,8 +172,8 @@ def reviewMenu(frame):
     tree["columns"] = ("id", "name", "desc", "broom", "price")
     tree.column("#0", width=0, minwidth=0)
     tree.column("id", width=75, minwidth=75)
-    tree.column("name", width=160, minwidth=160)
-    tree.column("desc", width=300, minwidth=300)
+    tree.column("name", width=160, minwidth=230)
+    tree.column("desc", width=300, minwidth=230)
     tree.column("broom", width=75, minwidth=75)
     tree.column("price", width=75, minwidth=75)
     tree.heading("id", text="Id")
@@ -164,29 +200,8 @@ def reviewMenu(frame):
     for child in frame.winfo_children():
         child.grid_configure(padx=5, pady=5)
 
-def resultMenu(frame):
-    ttk.Label(frame, text="", width=15).grid(column=2, row=0, sticky=(W,E))
-    ttk.Button(frame, text="Book", width=15).grid(column=3, row=0, sticky=(W,E))
-    
-    tree = ttk.Treeview(frame, height=16)
-    tree["columns"] = ("id", "name", "desc", "broom", "price")
-    tree.column("#0", width=0, minwidth=0)
-    tree.column("id", width=75, minwidth=75)
-    tree.column("name", width=160, minwidth=160)
-    tree.column("desc", width=300, minwidth=300)
-    tree.column("broom", width=75, minwidth=75)
-    tree.column("price", width=75, minwidth=75)
-    tree.heading("id", text="Id")
-    tree.heading("name", text="Name")
-    tree.heading("desc", text="Description")
-    tree.heading("broom", text="Rooms")
-    tree.heading("price", text="Price")
-    tree.grid(row=1, column=0, columnspan=4, sticky=(N,E,S,W))
-    tree.insert('', 'end', values=('a','b','c','d','e'))
 
-    #padding
-    for child in frame.winfo_children():
-        child.grid_configure(padx=5, pady=5)
+
 
 def errorScreen(frame, errorCode):
     ttk.Label(frame, width=15, text="").grid(column=2, row=0)
@@ -196,6 +211,9 @@ def errorScreen(frame, errorCode):
     elif errorCode == 2:
         ttk.Label(frame, width=40, text="               Sorry you can't review that listing!").grid(row=1, column=1, columnspan=2)
         ttk.Button(frame, width=40, text="Go Back", command=lambda:raiseFrame(reviewFrame)).grid(row=2, column=1, columnspan=2)
+
+
+
 
 #set root characteristics
 root = Tk()
@@ -221,7 +239,7 @@ for frame in (searchFrame, resultFrame, reviewFrame, errorSearch, errorReview):
     ttk.Button(frame, width=15, text="Review", command=lambda:raiseFrame(reviewFrame)).grid(column=1, row=0, sticky=(W, E))
 
 searchMenu(searchFrame, resultFrame)
-resultMenu(resultFrame)
+resultTree = resultMenu(resultFrame)
 reviewMenu(reviewFrame)
 errorScreen(errorSearch, 1)
 errorScreen(errorReview, 2)
@@ -230,7 +248,7 @@ raiseFrame(searchFrame)
 
 root.mainloop()
 
-#conn.close()
+conn.close()
 
 
 
