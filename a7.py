@@ -100,8 +100,8 @@ class app:
         tree = ttk.Treeview(FRAME, height=HEIGHT)
         tree["columns"] = ("listing_id", "name", "desc", "broom", "stay_from", "stay_to")
         tree.column("#0", width=0, minwidth=0)
-        tree.column("listing_id", width=0, minwidth=0)
-        tree.column("name", width=200, minwidth=200)
+        tree.column("listing_id", width=70, minwidth=70)
+        tree.column("name", width=130, minwidth=130)
         tree.column("desc", width=135, minwidth=135)
         tree.column("broom", width=40, minwidth=40)
         tree.column("stay_from", width=60, minwidth=60)
@@ -121,7 +121,6 @@ class app:
 
     def searchFilterBooking(self):
         try:
-
             minDate = "{}/{}/{}".format(mon2num(self.startMonth.get()), self.startDay.get(), self.startYear.get())
             maxDate = "{}/{}/{}".format(mon2num(self.endMonth.get()), self.endDay.get(), self.endYear.get())
             minPrice = 0
@@ -177,6 +176,15 @@ class app:
 
     def postReview(self):
         try:
+            cur.execute("SELECT MAX(id) FROM Reviews")
+            row = cur.fetchone()
+            print('MAX ID: ', row[0])
+            maxID = 0
+            if not row[0]:
+                maxID = 0
+            else:
+                maxID = row[0] + 1
+
             curItem = self.reviewViewer.item(self.reviewViewer.focus())
 
             checkStayedStr="""
@@ -193,9 +201,9 @@ class app:
                 self.raiseFrame(self.reviewError)
             else:
                 insertReviewStr="""
-                INSERT INTO Reviews(listing_id, comments)
-                VALUES({}, '{}')
-                """.format(curItem['values'][0], self.comments.get())
+                INSERT INTO Reviews VALUES
+                ({}, {}, '{}', '{}');
+                """.format(maxID, curItem['values'][0], self.comments.get(), self.userName.get())
 
                 print(insertReviewStr)
                 cur.execute(insertReviewStr)
@@ -207,6 +215,15 @@ class app:
 
     def bookListing(self):
         try:
+            cur.execute("SELECT MAX(id) FROM Bookings")
+            row = cur.fetchone()
+            print('MAX ID: ', row[0])
+            maxID = 0
+            if not row[0]:
+                maxID = 0
+            else:
+                maxID = row[0] + 1
+
             curItem = self.resultViewer.item(self.resultViewer.focus())
             print ('curItem = ', curItem['values'][0])
 
@@ -214,9 +231,9 @@ class app:
             maxDate = "{}/{}/{}".format(mon2num(self.endMonth.get()), self.endDay.get(), self.endYear.get())
 
             bookStr = """
-            INSERT INTO Bookings(listing_id, guest_name, stay_from, stay_to, number_of_guest)
-            VALUES({}, '{}', '{}', '{}', {});
-            """.format(curItem['values'][0], self.userName.get(), minDate, maxDate, self.numGuest.get())
+            INSERT INTO Bookings VALUES
+            ({}, {}, '{}', '{}', '{}', {});
+            """.format(maxID, curItem['values'][0], self.userName.get(), minDate, maxDate, self.numGuest.get())
 
             print(bookStr)
             cur.execute(bookStr)
