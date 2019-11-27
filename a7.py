@@ -1,5 +1,5 @@
 MONTH = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-DAY = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"]
+DAY = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"]
 YEAR = ["2014","2015","2016","2017","2018","2019","2020"]
 def mon2num(input):
     num = MONTH.index(input) + 1
@@ -30,46 +30,64 @@ class app:
         self.root.title("Airbnb Booker")
         self.root.configure(background='#FF5A60')
 
-        #declare tk frames
-        self.loginFrame = self.menuLogin()
-        self.searchFrame = self.menuSearch()
-        #self.resultFrame = self.menuResult()
-        self.reviewFrame = self.menuReview()
-        self.searchEmpty = self.menuError(1, self.searchFrame)
-        self.reviewError = self.menuError(2, self.reviewFrame)
+        self.searchFrame = self.initFrames()
+        self.reviewFrame = self.initFrames()
+        self.searchEmpty = self.initFrames()
+        self.reviewError = self.initFrames()
+        self.successPage = self.initFrames()
+
+        self.loginFrame = self.initFrames()     
+        self.menuLogin(self.loginFrame)
         self.raiseFrame(self.loginFrame)
         self.root.mainloop()
         conn.close()
 
 
     def raiseFrame(self, FRAME):
+        if self.reviewFrame == FRAME:
+            self.searchUserBooking()
+        elif self.searchFrame == FRAME:
+            self.searchFilterBooking()
         FRAME.tkraise()
 
-    def commonUIPre(self, FRAME):
-        #setup grid
+    def initFrames(self):
+        FRAME = ttk.Frame(self.root)
         FRAME.grid(column=0, row=0, sticky=(N, W, E, S))
         FRAME.grid_configure(padx=10, pady=10)
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        #menu buttons
-        ttk.Button(FRAME, width=15, text="Find homes", command=lambda:self.raiseFrame(self.searchFrame)).grid(column=0, row=0, sticky=(W, E))
-        ttk.Button(FRAME, width=15, text="Review", command=lambda:self.raiseFrame(self.reviewFrame)).grid(column=1, row=0, sticky=(W, E))
+        return FRAME
+
+    #called after we hit login with a user name
+    def signIn(self):
+        self.menuSearch(self.searchFrame)
+        self.menuReview(self.reviewFrame)
+        self.menuError(self.searchEmpty, 1, self.searchFrame)
+        self.menuError(self.reviewError, 2, self.reviewFrame)
+        self.menuError(self.successPage, 3, self.searchFrame)
+
+        self.setupMenu(self.searchFrame)
+        self.setupMenu(self.reviewFrame)
+        self.setupMenu(self.searchEmpty)
+        self.setupMenu(self.reviewError)
+        self.setupMenu(self.successPage)
+
+        self.raiseFrame(self.searchFrame)
+
+    def setupMenu(self, FRAME):
+        ttk.Button(FRAME, width=20, text="Find homes", command=lambda:self.raiseFrame(self.searchFrame)).grid(column=0, row=0, sticky=(W, E))
+        ttk.Button(FRAME, width=20, text="Review", command=lambda:self.raiseFrame(self.reviewFrame)).grid(column=1, row=0, sticky=(W, E))
 
 
-    def commonUIPost(self, FRAME):
-        for child in FRAME.winfo_children():
-            child.grid_configure(padx=5, pady=5)
-
-
-    def createDBViewer(self, FRAME, HEIGHT):
+    def createResultViewer(self, FRAME, HEIGHT):
         tree = ttk.Treeview(FRAME, height=HEIGHT)
         tree["columns"] = ("id", "name", "desc", "broom", "price")
         tree.column("#0", width=0, minwidth=0)
-        tree.column("id", width=75, minwidth=75)
-        tree.column("name", width=160, minwidth=230)
-        tree.column("desc", width=300, minwidth=230)
-        tree.column("broom", width=75, minwidth=75)
-        tree.column("price", width=75, minwidth=75)
+        tree.column("id", width=70, minwidth=70)
+        tree.column("name", width=200, minwidth=200)
+        tree.column("desc", width=135, minwidth=135)
+        tree.column("broom", width=45, minwidth=45)
+        tree.column("price", width=45, minwidth=45)
         tree.heading("id", text="Id")
         tree.heading("name", text="Name")
         tree.heading("desc", text="Description")
@@ -77,6 +95,29 @@ class app:
         tree.heading("price", text="Price")
         return tree
 
+
+    def createReviewViewer(self, FRAME, HEIGHT):
+        tree = ttk.Treeview(FRAME, height=HEIGHT)
+        tree["columns"] = ("listing_id", "name", "desc", "broom", "stay_from", "stay_to")
+        tree.column("#0", width=0, minwidth=0)
+        tree.column("listing_id", width=0, minwidth=0)
+        tree.column("name", width=200, minwidth=200)
+        tree.column("desc", width=135, minwidth=135)
+        tree.column("broom", width=40, minwidth=40)
+        tree.column("stay_from", width=60, minwidth=60)
+        tree.column("stay_to", width=60, minwidth=60)
+        tree.heading("listing_id", text="Id")
+        tree.heading("name", text="Name")
+        tree.heading("desc", text="Description")
+        tree.heading("broom", text="Rooms")
+        tree.heading("stay_from", text="Arrive")
+        tree.heading("stay_to", text="Depart")
+        return tree
+    
+
+    def resetVariables(self):
+        self.resultViewer.delete(*self.resultViewer.get_children())
+        self.reviewViewer.delete(*self.reviewViewer.get_children())
 
     def searchFilterBooking(self):
         try:
@@ -106,11 +147,10 @@ class app:
             print("rows: ", cur.rowcount)
             if cur.rowcount == 0:
                 print("empty")
+                self.resetVariables()
                 self.raiseFrame(self.searchEmpty)
             else:
-                self.resultFrame = self.menuResult()
                 self.resultViewer.delete(*self.resultViewer.get_children())
-                self.raiseFrame(self.resultFrame)
                 while row:
                     self.resultViewer.insert('', 'end', values=(row[0],row[1],row[2],row[3],row[4]))
                     row = cur.fetchone()
@@ -120,7 +160,50 @@ class app:
 
 
     def searchUserBooking(self):
-        print("search user bookings")
+
+        searchUserBookingStr="""
+        SELECT DISTINCT L.id, L.name, LEFT(L.description, 25), L.number_of_bedrooms, B.stay_from, B.stay_to
+        FROM Listings as L, Bookings as B
+        WHERE B.guest_name = '{}' AND L.id = B.listing_id;
+        """.format(self.userName.get())
+
+        print(searchUserBookingStr)
+        cur.execute(searchUserBookingStr)
+        row = cur.fetchone()
+        self.reviewViewer.delete(*self.reviewViewer.get_children())
+        while row:
+            self.reviewViewer.insert('', 'end', values=(row[0], row[1], row[2],row[3],row[4],row[5]))
+            row = cur.fetchone()
+
+    def postReview(self):
+        try:
+            curItem = self.reviewViewer.item(self.reviewViewer.focus())
+
+            checkStayedStr="""
+            SELECT * FROM Bookings
+            WHERE guest_name = '{}' AND '{}' <= GETDATE() AND listing_id = {};
+            """.format(self.userName.get(), curItem['values'][4], curItem['values'][0])
+
+            print(checkStayedStr)
+            cur.execute(checkStayedStr)
+
+            row = cur.fetchone()
+            if cur.rowcount == 0:
+                self.resetVariables()
+                self.raiseFrame(self.reviewError)
+            else:
+                insertReviewStr="""
+                INSERT INTO Reviews(listing_id, comments)
+                VALUES({}, '{}')
+                """.format(curItem['values'][0], self.comments.get())
+
+                print(insertReviewStr)
+                cur.execute(insertReviewStr)
+                cur.commit()
+                self.raiseFrame(self.successPage)
+        except ValueError:
+            pass
+
 
     def bookListing(self):
         try:
@@ -137,7 +220,8 @@ class app:
 
             print(bookStr)
             cur.execute(bookStr)
-            print("Success")
+            cur.commit()
+            self.raiseFrame(self.successPage)
         except ValueError:
             pass
 
@@ -146,26 +230,14 @@ class app:
         
 
 
-    def menuLogin(self):
-        FRAME = ttk.Frame(self.root)
-
-        FRAME.grid(column=0, row=0, sticky=(N, W, E, S))
-        FRAME.grid_configure(padx=10, pady=10)
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
-
+    def menuLogin(self, FRAME):
         self.userName = StringVar()
-        ttk.Label(      FRAME,  text="Username",        width=15)                               .grid(column=0, row=1, sticky=(W,E))
-        ttk.Button(     FRAME,  text="Login",   width=15,   command=lambda:self.raiseFrame(self.searchFrame)).grid(column=0, row=2, sticky=(W,E))
-        ttk.Entry(      FRAME,  width=15,               textvariable=self.userName)             .grid(column=1, row=1, sticky=(W,E))
-        self.commonUIPost(FRAME)
-        return FRAME
+        ttk.Label(      FRAME,  text="Username",        width=20)                               .grid(column=0, row=1, sticky=(W,E))
+        ttk.Button(     FRAME,  text="Login",   width=20,   command=lambda:self.signIn())          .grid(column=0, row=2, sticky=(W,E))
+        ttk.Entry(      FRAME,  width=20,               textvariable=self.userName)             .grid(column=1, row=1, sticky=(W,E))
 
 
-    def menuSearch(self):
-        FRAME = ttk.Frame(self.root)
-        self.commonUIPre(FRAME)
-
+    def menuSearch(self, FRAME):
         self.minPrice = StringVar()
         self.maxPrice = StringVar()
         self.numRooms = StringVar()
@@ -175,86 +247,60 @@ class app:
         self.endMonth = StringVar()
         self.endDay = StringVar()
         self.endYear = StringVar()
+        self.numGuest = StringVar()
 
-        ttk.Label(      FRAME,  text="Filter:")                                                 .grid(column=0, row=1, sticky=(W, E))
+        ttk.Label(      FRAME,  text="Guest Name:",)                                            .grid(column=0, row=1, sticky=(W,E))
+        ttk.Label(      FRAME,  text=self.userName.get())                                       .grid(column=1, row=1, sticky=(W,E))
         ttk.Label(      FRAME,  text="Minimum price:")                                          .grid(column=0, row=2, sticky=(W, E))
         ttk.Label(      FRAME,  text="Maximum price:")                                          .grid(column=2, row=2, sticky=(W, E))
         ttk.Label(      FRAME,  text="Minimum Rooms")                                           .grid(column=0, row=3, sticky=(W, E))
         ttk.Label(      FRAME,  text="Stay from")                                               .grid(column=0, row=4, sticky=(W, E))
         ttk.Label(      FRAME,  text="Stay to")                                                 .grid(column=0, row=5, sticky=(W, E))
-        ttk.Button(     FRAME,  text="search",  width=15,   command=self.searchFilterBooking)   .grid(column=3, row=6, sticky=(W, E))
-        ttk.Entry(      FRAME,  width=15,                   textvariable=self.minPrice)         .grid(column=1, row=2, sticky=(W, E))
-        ttk.Entry(      FRAME,  width=15,                   textvariable=self.maxPrice)         .grid(column=3, row=2, sticky=(W, E))
-        ttk.Entry(      FRAME,  width=15,                   textvariable=self.numRooms)         .grid(column=1, row=3, sticky=(W, E))
-        ttk.Combobox(   FRAME,  values=MONTH,   width=15,   textvariable=self.startMonth)       .grid(column=1, row=4, sticky=(W, E))
-        ttk.Combobox(   FRAME,  values=DAY,     width=15,   textvariable=self.startDay)         .grid(column=2, row=4, sticky=(W, E))
-        ttk.Combobox(   FRAME,  values=YEAR,    width=15,   textvariable=self.startYear)        .grid(column=3, row=4, sticky=(W, E))
-        ttk.Combobox(   FRAME,  values=MONTH,   width=15,   textvariable=self.endMonth)         .grid(column=1, row=5, sticky=(W, E))
-        ttk.Combobox(   FRAME,  values=DAY,     width=15,   textvariable=self.endDay)           .grid(column=2, row=5, sticky=(W, E))
-        ttk.Combobox(   FRAME,  values=YEAR,    width=15,   textvariable=self.endYear)          .grid(column=3, row=5, sticky=(W, E))
+        ttk.Button(     FRAME,  text="search",  width=20,   command=self.searchFilterBooking)   .grid(column=3, row=6, sticky=(W, E))
+        ttk.Entry(      FRAME,  width=20,                   textvariable=self.minPrice)         .grid(column=1, row=2, sticky=(W,E))
+        ttk.Entry(      FRAME,  width=20,                   textvariable=self.maxPrice)         .grid(column=3, row=2, sticky=(W, E))
+        ttk.Entry(      FRAME,  width=20,                   textvariable=self.numRooms)         .grid(column=1, row=3, sticky=(W, E))
+        ttk.Combobox(   FRAME,  values=MONTH,   width=20,   textvariable=self.startMonth)       .grid(column=1, row=4, sticky=(W, E))
+        ttk.Combobox(   FRAME,  values=DAY,     width=20,   textvariable=self.startDay)         .grid(column=2, row=4, sticky=(W, E))
+        ttk.Combobox(   FRAME,  values=YEAR,    width=20,   textvariable=self.startYear)        .grid(column=3, row=4, sticky=(W, E))
+        ttk.Combobox(   FRAME,  values=MONTH,   width=20,   textvariable=self.endMonth)         .grid(column=1, row=5, sticky=(W, E))
+        ttk.Combobox(   FRAME,  values=DAY,     width=20,   textvariable=self.endDay)           .grid(column=2, row=5, sticky=(W, E))
+        ttk.Combobox(   FRAME,  values=YEAR,    width=20,   textvariable=self.endYear)          .grid(column=3, row=5, sticky=(W, E))
 
-        self.commonUIPost(FRAME)
-        return FRAME
-
-
-    def menuResult(self):
-        FRAME = ttk.Frame(self.root)
-        self.commonUIPre(FRAME)
-        self.numGuest = StringVar()
-
-        minDate = "{}/{}/{}".format(mon2num(self.startMonth.get()), self.startDay.get(), self.startYear.get())
-        maxDate = "{}/{}/{}".format(mon2num(self.endMonth.get()), self.endDay.get(), self.endYear.get())
-
-        ttk.Label(      FRAME,  text="Guest Name",        width=15)                                       .grid(column=1, row=14, sticky=(W,E))
-        ttk.Label(      FRAME,  text=self.userName.get(),        width=15)                                       .grid(column=2, row=14, sticky=(W,E))
-        ttk.Label(      FRAME,  text="Date of arrival",        width=15)                                       .grid(column=1, row=15, sticky=(W,E))
-        ttk.Label(      FRAME,  text=minDate,        width=15)                                       .grid(column=2, row=14, sticky=(W,E))
-        ttk.Label(      FRAME,  text="Date of departure",        width=15)                                       .grid(column=1, row=15, sticky=(W,E))
-        ttk.Label(      FRAME,  text=maxDate,        width=15)                                          .grid(column=2, row=15, sticky=(W,E))
-        ttk.Label(      FRAME,  text="Number of guest", width=15)                                   .grid(column=1, row=16, sticky=(W,E))
-        ttk.Entry(      FRAME,  textvariable=self.numGuest, width=15)                           .grid(column=2, row=16, sticky=(W,E))
-        ttk.Button(     FRAME,  text="Book", command=lambda:self.bookListing(), width=15)       .grid(column=3, row=16, sticky=(W,E))
-        self.resultViewer = self.createDBViewer(FRAME, 10)
-        self.resultViewer                                                                       .grid(column=0, row=1, columnspan=4, sticky=(N,W,E,S))
-
-        self.commonUIPost(FRAME)
-        return FRAME
+        self.resultViewer = self.createResultViewer(FRAME, 10)
+        self.resultViewer                                                                       .grid(column=0, row=7, columnspan=4, sticky=(N,W,E,S))
+        ttk.Label(      FRAME,  text="Number of guest:")                                        .grid(column=0, row=18, sticky=(W,E))
+        ttk.Entry(      FRAME,  textvariable=self.numGuest)                                     .grid(column=1, row=18, sticky=(W,E))
+        ttk.Button(     FRAME,  text="Book", command=lambda:self.bookListing())                 .grid(column=3, row=18, sticky=(W,E))
 
 
-    def menuReview(self):
-        FRAME = ttk.Frame(self.root)
-        self.commonUIPre(FRAME)
-
-        name = StringVar()
-        comments = StringVar()
-
-        ttk.Label(      FRAME,  text="Name")                                                    .grid(column=0, row=1, sticky=(W,E))
-        ttk.Label(      FRAME,  text="Comments")                                                .grid(column=0, row=2, sticky=(W,E))
-        ttk.Label(      FRAME,  text="")                                                        .grid(column=0, row=3, sticky=(W,E))
-        ttk.Button(     FRAME,  text="Post", command=lambda:self.bookListing())                 .grid(column=3, row=0, sticky=(W,E))
-        ttk.Entry(      FRAME,  width=15, textvariable=name)                                    .grid(column=1, row=1, sticky=(W,E))
-        ttk.Entry(      FRAME,  textvariable=comments)                                          .grid(column=1, row=2, columnspan=4, sticky=(W,E))
-
-        self.reviewViewer = self.createDBViewer(FRAME, 4)
-        self.reviewViewer                                                                       .grid(column=0, row=4, columnspan=4, sticky=(N,W,E,S))
-
-        self.commonUIPost(FRAME)
-        return FRAME
+    def menuReview(self, FRAME):
+        self.comments = StringVar()
+        ttk.Label(FRAME, text="", width=23).grid(column=2, row=0, sticky=(W,E))
+        ttk.Label(FRAME, text="", width=23).grid(column=3, row=0, sticky=(W,E))
 
 
-    def menuError(self, ERR, LASTFRAME):
-        FRAME = ttk.Frame(self.root)
-        self.commonUIPre(FRAME)
+        ttk.Label(      FRAME,  text="Guest Name")                                              .grid(column=0, row=16, sticky=(W,E))
+        ttk.Label(      FRAME,  text=self.userName.get(), width=23)                             .grid(column=1, row=16, sticky=(W,E))
+        ttk.Label(      FRAME,  text="Comments:")                                                .grid(column=0, row=17, sticky=(W,E))
+        ttk.Button(     FRAME,  text="Post", command=lambda:self.postReview())                 .grid(column=3, row=18, sticky=(W,E))
+        ttk.Entry(      FRAME,  textvariable=self.comments)                                          .grid(columnspan=2, column=1, row=17, sticky=(W,E))
 
-        ttk.Label(FRAME, width=15, text="").grid(column=2, row=0) #space the menu properly
+        ttk.Label(FRAME, text="Your Bookings").grid(column=0,row=1, sticky=(W,E))
+        self.reviewViewer = self.createReviewViewer(FRAME, 13)
+        self.reviewViewer                                                                       .grid(column=0, row=2, columnspan=4, sticky=(N,W,E,S))
+
+
+    def menuError(self, FRAME, ERR, LASTFRAME):
+        ttk.Label(FRAME, width=20, text="").grid(column=2, row=0) #space the menu properly
         if ERR == 1:
             ttk.Label(FRAME, width=40, text="                   Search returned no results!")       .grid(row=1, column=1, columnspan=2)
         elif ERR == 2:
             ttk.Label(FRAME, width=40, text="               Sorry you can't review that listing!")  .grid(row=1, column=1, columnspan=2)
+        elif ERR ==3:
+            ttk.Label(FRAME, width=40, text="                       Success!")       .grid(row=1, column=1, columnspan=2)
+
         ttk.Button(FRAME, width=40, text="Go Back", command=lambda:self.raiseFrame(LASTFRAME)).grid(row=2, column=1, columnspan=2)
         
-        self.commonUIPost(FRAME)
-        return FRAME
-
 
 X = app()
